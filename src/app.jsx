@@ -57,7 +57,11 @@ function view(state$, history$) {
         <table className="filetree">
           <tbody>
             { pathname !== '/' &&
-              <tr className="navigation"><td colspan="2"><span className="nav-link">..</span></td></tr> }
+              <tr className="navigation">
+                <td></td>
+                <td><span className="nav-link">..</span></td>
+              </tr>
+            }
           </tbody>
           <tbody>
             {filesList}

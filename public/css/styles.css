@@ -8,6 +8,10 @@ tr.navigation {
   border-bottom: 1px solid purple;
 }
 
+tr.navigation > td {
+  padding: 5px;
+}
+
 span.nav-link {
   text-decoration: underline;
   cursor: pointer;
