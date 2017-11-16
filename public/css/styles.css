@@ -1,0 +1,14 @@
+table.filetree {
+  width: 100px;
+  border-collapse: collapse;
+}
+
+tr.navigation {
+  border-top: 1px solid purple;
+  border-bottom: 1px solid purple;
+}
+
+span.nav-link {
+  text-decoration: underline;
+  cursor: pointer;
+}
