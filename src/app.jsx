@@ -2,12 +2,28 @@ import xs from 'xstream'
 import dropRepeats from 'xstream/extra/dropRepeats';
 
 export function App (sources) {
-  const history$ = sources.DOM.select('span.nav-link').events('click')
-    .map(ev => ev.target.dataset.filepath || "/")
-    .compose(dropRepeats());
+  const history$ = sources.history.map(history => {
+    return sources.DOM.select('span.nav-link').events('click')
+      .map(ev => {
+          const {pathname} = history;
+          const datasetFilename = ev.target.dataset.filename;
+          if (pathname === '/') {
+            return '/'+datasetFilename;
+          } else {
+            if (datasetFilename) {
+              return pathname+'/'+datasetFilename;
+            } else {
+              return pathname.substr(0, pathname.lastIndexOf('/'));
+            }
+          }
+      })
+      .compose(dropRepeats());
+  })
+  .flatten();
 
   const subtree = {'hi_there': {'type': 'file'},
-                   'face_here': {'type': 'file'}};
+                   'face_here': {'type': 'folder',
+                                 'children': {'brr-brr-brr': {'type': 'file'}}}};
   const filetree = {'foo': {'type': 'file'},
                     'bar': {'type': 'folder', 'children': subtree},
                     'baz': {'type': 'file'}};
@@ -45,18 +61,11 @@ function view(state$, history$) {
         subtreeList.push({'name': name, 'type': props.type});
       }
       const filesList = subtreeList.map(f => {
-        function nameToFullPath(pathname, name) {
-          if (pathname === '/') {
-            return name;
-          } else {
-            return pathname + '/' + f.name;
-          }
-        }
         const iconClass = f.type === 'file' ? 'fa-file-text-o' : 'fa-folder';
         return (
           <tr className="navigation">
             <td><i className={'fa '+iconClass} aria-hidden="true"></i></td>
-            <td><span className="nav-link" data-filepath={nameToFullPath(pathname, f.name)}>{f.name}</span></td>
+            <td><span className="nav-link" data-filename={f.name}>{f.name}</span></td>
           </tr>
         );
       });
