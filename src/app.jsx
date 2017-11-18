@@ -69,20 +69,37 @@ function view(state$, history$) {
           </tr>
         );
       });
+
+      // TODO: de-duplicate with path-splitting code in traverseToSubtree
+      let breadcrumbElements;
+      if (pathname !== '/') {
+        const breadcrumbSpans = pathname.slice(1).split('/').map(pathSegment =>
+          <span className="path-segment">{pathSegment}</span>
+        );
+        const breadcrumbHome = <i className="fa fa-home" aria-hidden="true"></i>;
+        const breadcrumbNonHome = breadcrumbSpans.map(sp =>
+          [<span className="separator">/</span>, sp]);
+        breadcrumbElements = [breadcrumbHome].concat(...breadcrumbNonHome);
+      }
       return (
-        <table className="filetree">
-          <tbody>
-            { pathname !== '/' &&
-              <tr className="navigation">
-                <td></td>
-                <td><span className="nav-link">..</span></td>
-              </tr>
-            }
-          </tbody>
-          <tbody>
-            {filesList}
-          </tbody>
-        </table>
+        <div>
+          { breadcrumbElements &&
+            <div className="breadcrumbs">{breadcrumbElements}</div>
+          }
+          <table className="filetree">
+            <tbody>
+              { pathname !== '/' &&
+                <tr className="navigation">
+                  <td></td>
+                  <td><span className="nav-link">..</span></td>
+                </tr>
+              }
+            </tbody>
+            <tbody>
+              {filesList}
+            </tbody>
+          </table>
+        </div>
       );
     });
   }).flatten();
