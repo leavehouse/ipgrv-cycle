@@ -75,10 +75,27 @@ function FiletreeNav(sources) {
     // TODO: de-duplicate with path-splitting code in traverseToSubtree?
     let breadcrumbSpans;
     if (pathname !== '/') {
-      const breadcrumbPathSegments = pathname.slice(1).split('/').map(pathSegment =>
-        <span className="path-segment">{pathSegment}</span>
-      );
-      const breadcrumbSeparator = <span className="separator">/</span>;
+      // turn `/foo/bar/baz` into
+      // [{segment: 'foo', prefix: '/foo'},
+      //  {segment: 'bar', prefix: '/foo/bar'},
+      //  {segment: 'baz', prefix: '/foo/bar/baz'}]
+      // The path prefix will be used for the link of each segment
+      const pathSegments = pathname.slice(1).split('/');
+      let prefix = '';
+      let pathSegmentsPrefixes = [];
+      for (const segment of pathSegments) {
+        prefix += '/' + segment;
+        pathSegmentsPrefixes.push({segment: segment, prefix: prefix});
+      }
+      const lastSegment = pathSegments.length - 1;
+      const breadcrumbPathSegments = pathSegmentsPrefixes.map((pathSegment, i) => {
+        if (i < lastSegment) {
+          return <span className="link" data-filepath={pathSegment.prefix}>{pathSegment.segment}</span>;
+        } else {
+          return <span>{pathSegment.segment}</span>;
+        }
+      });
+      const breadcrumbSeparator = <span className="separator"> / </span>;
       breadcrumbSpans = [].concat(
         ...breadcrumbPathSegments.map(seg => [breadcrumbSeparator, seg]));
     }
@@ -86,7 +103,7 @@ function FiletreeNav(sources) {
       <div className="filetreeNav">
         { breadcrumbSpans &&
           <div className="breadcrumbs">
-            <i className="fa fa-home" aria-hidden="true"></i>
+            <i className="link fa fa-home" aria-hidden="true"></i>
             {breadcrumbSpans}
           </div>
         }

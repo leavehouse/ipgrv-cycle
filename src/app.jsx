@@ -3,7 +3,7 @@ import dropRepeats from 'xstream/extra/dropRepeats';
 import {Filetree} from './filetree'
 
 export function App (sources) {
-  const history$ = sources.history.map(history => {
+  const filetreeEntryHistory$ = sources.history.map(history => {
     return sources.DOM.select('span.nav-link').events('click')
       .map(ev => {
           const {pathname} = history;
@@ -17,10 +17,21 @@ export function App (sources) {
               return pathname.substr(0, pathname.lastIndexOf('/'));
             }
           }
-      })
-      .compose(dropRepeats());
+      });
   })
   .flatten();
+
+  const breadcrumbsHistory$ = sources.DOM.select('.breadcrumbs > .link').events('click')
+    .map(ev => {
+      const datasetFilepath = ev.target.dataset.filepath;
+      if (datasetFilepath) {
+        return datasetFilepath;
+      } else {
+        return '/';
+      }
+  });
+
+  const history$ = xs.merge(filetreeEntryHistory$, breadcrumbsHistory$);
 
   const subtree = {'hi_there': {'type': 'file'},
                    'face_here': {'type': 'folder',
