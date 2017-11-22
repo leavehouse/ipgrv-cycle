@@ -45,38 +45,12 @@ function traverseToSubtree(pathSegments, filetree) {
 function view(state$) {
   return state$.map(state => {
     const filetreeNavVDom = navView(state.pathSegments);
-    const pathIsRoot = state.pathSegments.length === 0;
-    const subtree = traverseToSubtree(state.pathSegments, state.fileTree);
-    let subtreeList = [];
-    for (const [name, props] of Object.entries(subtree)) {
-      subtreeList.push({'name': name, 'type': props.type});
-    }
-    const filesList = subtreeList.map(f => {
-      const iconClass = f.type === 'file' ? 'fa-file-text-o' : 'fa-folder';
-      return (
-        <tr className="navigation">
-          <td><i className={'fa '+iconClass} aria-hidden="true"></i></td>
-          <td><span className="nav-link" data-filename={f.name}>{f.name}</span></td>
-        </tr>
-      );
-    });
+    const treeObjectVDom = treeObjectView(state);
 
     return (
       <div>
         {filetreeNavVDom}
-        <table className="filetree">
-          <tbody>
-            { !pathIsRoot &&
-              <tr className="navigation">
-                <td></td>
-                <td><span className="nav-link">..</span></td>
-              </tr>
-            }
-          </tbody>
-          <tbody>
-            {filesList}
-          </tbody>
-        </table>
+        {treeObjectVDom}
       </div>
     );
   });
@@ -118,5 +92,39 @@ function navView(pathSegments) {
         </div>
       }
     </div>
+  );
+}
+
+function treeObjectView(state) {
+  const pathIsRoot = state.pathSegments.length === 0;
+  const subtree = traverseToSubtree(state.pathSegments, state.fileTree);
+  let subtreeList = [];
+  for (const [name, props] of Object.entries(subtree)) {
+    subtreeList.push({'name': name, 'type': props.type});
+  }
+  const filesList = subtreeList.map(f => {
+    const iconClass = f.type === 'file' ? 'fa-file-text-o' : 'fa-folder';
+    return (
+      <tr className="navigation">
+        <td><i className={'fa '+iconClass} aria-hidden="true"></i></td>
+        <td><span className="nav-link" data-filename={f.name}>{f.name}</span></td>
+      </tr>
+    );
+  });
+
+  return (
+    <table className="filetree">
+      <tbody>
+        { !pathIsRoot &&
+          <tr className="navigation">
+            <td></td>
+            <td><span className="nav-link">..</span></td>
+          </tr>
+        }
+      </tbody>
+      <tbody>
+        {filesList}
+      </tbody>
+    </table>
   );
 }
