@@ -39,7 +39,7 @@ export function App (sources) {
   const filetreeData = {'foo': {'type': 'file'},
                     'bar': {'type': 'folder', 'children': subtree},
                     'baz': {'type': 'file'}};
-  const props$ = xs.of({'filetree': filetreeData});
+  const props$ = xs.of({'fileTree': filetreeData});
 
   const filetreeSources = {
     DOM: sources.DOM,

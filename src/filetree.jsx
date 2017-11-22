@@ -6,16 +6,35 @@ export function Filetree(sources) {
   };
   const filetreeNav = FiletreeNav(filetreeNavSources);
 
+  const actions = intent(sources.history);
+  const state$ = model(actions, sources.props);
+
   return {
-    DOM: view(sources.props, sources.history, filetreeNav.DOM)
+    DOM: view(state$, filetreeNav.DOM)
   }
 }
 
-function traverseToSubtree(path, filetree) {
-  if (path === '/') {
+function intent(historySource) {
+  return {
+    changePath$: historySource.map(location => location.pathname)
+  }
+}
+
+function model(actions, props$) {
+  return xs.combine(actions.changePath$, props$)
+    .map(([path, props]) => {
+      const pathSegments = path === '/' ? [] : path.slice(1).split('/');
+      return {
+        pathSegments: pathSegments,
+        fileTree: props.fileTree
+      }
+    });
+}
+
+function traverseToSubtree(pathSegments, filetree) {
+  if (pathSegments.length === 0) {
     return filetree;
   }
-  const pathSegments = path.slice(1).split('/');
   let subtree = filetree;
   for (const pathSegment of pathSegments) {
     const subEntry = subtree[pathSegment];
@@ -28,45 +47,43 @@ function traverseToSubtree(path, filetree) {
   return subtree;
 }
 
-function view(props$, history$, filetreeNavVDom$) {
-  return props$.map(branch => {
-    return xs.combine(history$, filetreeNavVDom$).map(([history, filetreeNavVDom]) => {
-      const {pathname} = history;
-      const subtree = traverseToSubtree(pathname, branch.filetree);
-      let subtreeList = [];
-      for (const [name, props] of Object.entries(subtree)) {
-        subtreeList.push({'name': name, 'type': props.type});
-      }
-      const filesList = subtreeList.map(f => {
-        const iconClass = f.type === 'file' ? 'fa-file-text-o' : 'fa-folder';
-        return (
-          <tr className="navigation">
-            <td><i className={'fa '+iconClass} aria-hidden="true"></i></td>
-            <td><span className="nav-link" data-filename={f.name}>{f.name}</span></td>
-          </tr>
-        );
-      });
-
+function view(state$, filetreeNavVDom$) {
+  return xs.combine(state$, filetreeNavVDom$).map(([state, filetreeNavVDom]) => {
+    const pathIsRoot = state.pathSegments.length === 0;
+    const subtree = traverseToSubtree(state.pathSegments, state.fileTree);
+    let subtreeList = [];
+    for (const [name, props] of Object.entries(subtree)) {
+      subtreeList.push({'name': name, 'type': props.type});
+    }
+    const filesList = subtreeList.map(f => {
+      const iconClass = f.type === 'file' ? 'fa-file-text-o' : 'fa-folder';
       return (
-        <div>
-          {filetreeNavVDom}
-          <table className="filetree">
-            <tbody>
-              { pathname !== '/' &&
-                <tr className="navigation">
-                  <td></td>
-                  <td><span className="nav-link">..</span></td>
-                </tr>
-              }
-            </tbody>
-            <tbody>
-              {filesList}
-            </tbody>
-          </table>
-        </div>
+        <tr className="navigation">
+          <td><i className={'fa '+iconClass} aria-hidden="true"></i></td>
+          <td><span className="nav-link" data-filename={f.name}>{f.name}</span></td>
+        </tr>
       );
     });
-  }).flatten();
+
+    return (
+      <div>
+        {filetreeNavVDom}
+        <table className="filetree">
+          <tbody>
+            { !pathIsRoot &&
+              <tr className="navigation">
+                <td></td>
+                <td><span className="nav-link">..</span></td>
+              </tr>
+            }
+          </tbody>
+          <tbody>
+            {filesList}
+          </tbody>
+        </table>
+      </div>
+    );
+  });
 }
 
 function FiletreeNav(sources) {
