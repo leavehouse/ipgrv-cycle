@@ -1,16 +1,11 @@
 import xs from 'xstream'
 
 export function Filetree(sources) {
-  const filetreeNavSources = {
-    history: sources.history
-  };
-  const filetreeNav = FiletreeNav(filetreeNavSources);
-
   const actions = intent(sources.history);
   const state$ = model(actions, sources.props);
 
   return {
-    DOM: view(state$, filetreeNav.DOM)
+    DOM: view(state$)
   }
 }
 
@@ -47,8 +42,9 @@ function traverseToSubtree(pathSegments, filetree) {
   return subtree;
 }
 
-function view(state$, filetreeNavVDom$) {
-  return xs.combine(state$, filetreeNavVDom$).map(([state, filetreeNavVDom]) => {
+function view(state$) {
+  return state$.map(state => {
+    const filetreeNavVDom = navView(state.pathSegments);
     const pathIsRoot = state.pathSegments.length === 0;
     const subtree = traverseToSubtree(state.pathSegments, state.fileTree);
     let subtreeList = [];
@@ -86,48 +82,41 @@ function view(state$, filetreeNavVDom$) {
   });
 }
 
-function FiletreeNav(sources) {
-  const vdom$ = sources.history.map(history => {
-    const {pathname} = history;
-    // TODO: de-duplicate with path-splitting code in traverseToSubtree?
-    let breadcrumbSpans;
-    if (pathname !== '/') {
-      // turn `/foo/bar/baz` into
-      // [{segment: 'foo', prefix: '/foo'},
-      //  {segment: 'bar', prefix: '/foo/bar'},
-      //  {segment: 'baz', prefix: '/foo/bar/baz'}]
-      // The path prefix will be used for the link of each segment
-      const pathSegments = pathname.slice(1).split('/');
-      let prefix = '';
-      let pathSegmentsPrefixes = [];
-      for (const segment of pathSegments) {
-        prefix += '/' + segment;
-        pathSegmentsPrefixes.push({segment: segment, prefix: prefix});
-      }
-      const lastSegment = pathSegments.length - 1;
-      const breadcrumbPathSegments = pathSegmentsPrefixes.map((pathSegment, i) => {
-        if (i < lastSegment) {
-          return <span className="link" data-filepath={pathSegment.prefix}>{pathSegment.segment}</span>;
-        } else {
-          return <span>{pathSegment.segment}</span>;
-        }
-      });
-      const breadcrumbSeparator = <span className="separator"> / </span>;
-      breadcrumbSpans = [].concat(
-        ...breadcrumbPathSegments.map(seg => [breadcrumbSeparator, seg]));
+function navView(pathSegments) {
+  let breadcrumbSpans;
+  if (pathSegments.length !== 0) {
+    // turn `/foo/bar/baz` into
+    // [{segment: 'foo', prefix: '/foo'},
+    //  {segment: 'bar', prefix: '/foo/bar'},
+    //  {segment: 'baz', prefix: '/foo/bar/baz'}]
+    // The path prefix will be used for the link of each segment
+    let prefix = '';
+    let pathSegmentsPrefixes = [];
+    for (const segment of pathSegments) {
+      prefix += '/' + segment;
+      pathSegmentsPrefixes.push({segment: segment, prefix: prefix});
     }
-    return (
-      <div className="filetreeNav">
-        { breadcrumbSpans &&
-          <div className="breadcrumbs">
-            <i className="link fa fa-home" aria-hidden="true"></i>
-            {breadcrumbSpans}
-          </div>
-        }
-      </div>
-    );
-  });
-  return {
-    DOM: vdom$,
+    const lastSegment = pathSegments.length - 1;
+    const breadcrumbPathSegments = pathSegmentsPrefixes.map((pathSegment, i) => {
+      if (i < lastSegment) {
+        return <span className="link" data-filepath={pathSegment.prefix}>{pathSegment.segment}</span>;
+      } else {
+        return <span>{pathSegment.segment}</span>;
+      }
+    });
+    const breadcrumbSeparator = <span className="separator"> / </span>;
+    breadcrumbSpans = [].concat(
+      ...breadcrumbPathSegments.map(seg => [breadcrumbSeparator, seg]));
   }
+
+  return (
+    <div className="filetreeNav">
+      { breadcrumbSpans &&
+        <div className="breadcrumbs">
+          <i className="link fa fa-home" aria-hidden="true"></i>
+          {breadcrumbSpans}
+        </div>
+      }
+    </div>
+  );
 }
