@@ -26,34 +26,33 @@ function model(actions, props$) {
     });
 }
 
-function traverseToSubtree(pathSegments, filetree) {
-  if (pathSegments.length === 0) {
-    return filetree;
-  }
-  let subtree = filetree;
-  for (const pathSegment of pathSegments) {
-    const subEntry = subtree[pathSegment];
-    if (subEntry.type === 'folder') {
-      subtree = subEntry.children;
-    } else {
-      throw new Error("Viewing blobs is currently unimplemented");
-    }
-  }
-  return subtree;
-}
-
 function view(state$) {
   return state$.map(state => {
     const filetreeNavVDom = navView(state.pathSegments);
-    const treeObjectVDom = treeObjectView(state);
+    const subtree = traverseToSubtree(state.pathSegments, state.fileTree);
+    const subtreeView = subtree.type === 'folder'
+      ? treeObjectView(state, subtree.children)
+      : <div>{subtree.contents}</div>;
 
     return (
       <div>
         {filetreeNavVDom}
-        {treeObjectVDom}
+        {subtreeView}
       </div>
     );
   });
+}
+
+// fileTree is a JS object whose keys are (immediate) children in the file tree,
+// values are an object representing either:
+//   - a file: {'type': 'file', 'contents': <file contents>}
+//   - a folder: {'type': 'folder', 'children': <file tree>}
+function traverseToSubtree(pathSegments, fileTree) {
+  let subtree = {'type': 'folder', 'children': fileTree};
+  for (const pathSegment of pathSegments) {
+    subtree = subtree.children[pathSegment];
+  }
+  return subtree;
 }
 
 function navView(pathSegments) {
@@ -95,11 +94,11 @@ function navView(pathSegments) {
   );
 }
 
-function treeObjectView(state) {
+// TODO: rename this so it doesnt use names of git internals?
+function treeObjectView(state, treeEntries) {
   const pathIsRoot = state.pathSegments.length === 0;
-  const subtree = traverseToSubtree(state.pathSegments, state.fileTree);
   let subtreeList = [];
-  for (const [name, props] of Object.entries(subtree)) {
+  for (const [name, props] of Object.entries(treeEntries)) {
     subtreeList.push({'name': name, 'type': props.type});
   }
   const filesList = subtreeList.map(f => {

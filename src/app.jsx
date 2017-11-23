@@ -33,12 +33,15 @@ export function App (sources) {
 
   const history$ = xs.merge(filetreeEntryHistory$, breadcrumbsHistory$);
 
-  const subtree = {'hi_there': {'type': 'file'},
+  const subsubtree = {'brr-brr-brr': {'type': 'file', 'contents': 'depends'},
+                      'blues-clues': {'type': 'folder', 'children': {}}};
+
+  const subtree = {'hi_there': {'type': 'file', 'contents': 'see for yourself'},
                    'face_here': {'type': 'folder',
-                                 'children': {'brr-brr-brr': {'type': 'file'}}}};
-  const filetreeData = {'foo': {'type': 'file'},
+                                 'children': subsubtree}};
+  const filetreeData = {'foo': {'type': 'file', 'contents': 'AAAAA'},
                     'bar': {'type': 'folder', 'children': subtree},
-                    'baz': {'type': 'file'}};
+                    'baz': {'type': 'file', 'contents': 'be kind'}};
   const props$ = xs.of({'fileTree': filetreeData});
 
   const filetreeSources = {
