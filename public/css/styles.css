@@ -1,15 +1,25 @@
-table.filetree {
-  width: 100px;
-  border-collapse: collapse;
+div.filetree-wrapper {
+  border: 2px solid pink;
 }
 
-tr.navigation {
-  border-top: 1px solid purple;
-  border-bottom: 1px solid purple;
+div.filetree-nav {
+  border: 1px solid brown;
+}
+
+table.tree-view {
+  border: 1px solid green;
+}
+
+div.blob-view {
+    border: 1px solid purple;
 }
 
 tr.navigation > td {
   padding: 5px;
+}
+
+tr.navigation > td.icon {
+  width: 20px;
 }
 
 span.nav-link {

@@ -32,10 +32,10 @@ function view(state$) {
     const subtree = traverseToSubtree(state.pathSegments, state.fileTree);
     const subtreeView = subtree.type === 'folder'
       ? treeObjectView(state, subtree.children)
-      : <div>{subtree.contents}</div>;
+      : blobObjectView(subtree.contents)
 
     return (
-      <div>
+      <div className="filetree-wrapper container">
         {filetreeNavVDom}
         {subtreeView}
       </div>
@@ -83,7 +83,7 @@ function navView(pathSegments) {
   }
 
   return (
-    <div className="filetreeNav">
+    <div className="filetree-nav row">
       { breadcrumbSpans &&
         <div className="breadcrumbs">
           <i className="link fa fa-home" aria-hidden="true"></i>
@@ -105,18 +105,18 @@ function treeObjectView(state, treeEntries) {
     const iconClass = f.type === 'file' ? 'fa-file-text-o' : 'fa-folder';
     return (
       <tr className="navigation">
-        <td><i className={'fa '+iconClass} aria-hidden="true"></i></td>
+        <td className="icon"><i className={'fa '+iconClass} aria-hidden="true"></i></td>
         <td><span className="nav-link" data-filename={f.name}>{f.name}</span></td>
       </tr>
     );
   });
 
   return (
-    <table className="filetree">
+    <table className="tree-view row u-full-width">
       <tbody>
         { !pathIsRoot &&
           <tr className="navigation">
-            <td></td>
+            <td className="icon"></td>
             <td><span className="nav-link">..</span></td>
           </tr>
         }
@@ -125,5 +125,15 @@ function treeObjectView(state, treeEntries) {
         {filesList}
       </tbody>
     </table>
+  );
+}
+
+function blobObjectView(contents) {
+  return (
+    <div className="blob-view row">
+      <pre>
+        {contents}
+      </pre>
+    </div>
   );
 }
