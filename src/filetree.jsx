@@ -77,9 +77,9 @@ function navView(pathSegments) {
         return <span>{pathSegment.segment}</span>;
       }
     });
-    const breadcrumbSeparator = <span className="separator"> / </span>;
+    const breadcrumbSeparator = () => <span className="separator"> / </span>;
     breadcrumbSpans = [].concat(
-      ...breadcrumbPathSegments.map(seg => [breadcrumbSeparator, seg]));
+      ...breadcrumbPathSegments.map(seg => [breadcrumbSeparator(), seg]));
   }
 
   return (
