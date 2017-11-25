@@ -2,37 +2,9 @@ import xs from 'xstream'
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {Filetree} from './filetree'
 
+const demoCommitHash = "z8mWaFhg8TJBrcjq3FtHq92Y6TsqzhNs7";
+
 export function App (sources) {
-  const filetreeEntryHistory$ = sources.history.map(history => {
-    return sources.DOM.select('span.nav-link').events('click')
-      .map(ev => {
-          const {pathname} = history;
-          const datasetFilename = ev.target.dataset.filename;
-          if (pathname === '/') {
-            return '/'+datasetFilename;
-          } else {
-            if (datasetFilename) {
-              return pathname+'/'+datasetFilename;
-            } else {
-              return pathname.substr(0, pathname.lastIndexOf('/'));
-            }
-          }
-      });
-  })
-  .flatten();
-
-  const breadcrumbsHistory$ = sources.DOM.select('.breadcrumbs > .link').events('click')
-    .map(ev => {
-      const datasetFilepath = ev.target.dataset.filepath;
-      if (datasetFilepath) {
-        return datasetFilepath;
-      } else {
-        return '/';
-      }
-  });
-
-  const history$ = xs.merge(filetreeEntryHistory$, breadcrumbsHistory$);
-
   const subsubtree = {'brr-brr-brr': {'type': 'file', 'contents': 'depends'},
                       'blues-clues': {'type': 'folder', 'children': {}}};
 
@@ -52,7 +24,6 @@ export function App (sources) {
   const filetree = Filetree(filetreeSources);
   const filetreeVDom$ = filetree.DOM;
   return {
-    DOM: filetreeVDom$,
-    history: history$,
+    DOM: filetreeVDom$
   }
 }

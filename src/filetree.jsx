@@ -20,6 +20,7 @@ function model(actions, props$) {
     .map(([path, props]) => {
       const pathSegments = path === '/' ? [] : path.slice(1).split('/');
       return {
+        path: path,
         pathSegments: pathSegments,
         fileTree: props.fileTree
       }
@@ -31,7 +32,7 @@ function view(state$) {
     const filetreeNavVDom = navView(state.pathSegments);
     const subtree = traverseToSubtree(state.pathSegments, state.fileTree);
     const subtreeView = subtree.type === 'folder'
-      ? treeObjectView(state, subtree.children)
+      ? treeObjectView(state.path, subtree.children)
       : blobObjectView(subtree.contents)
 
     return (
@@ -72,7 +73,7 @@ function navView(pathSegments) {
     const lastSegment = pathSegments.length - 1;
     const breadcrumbPathSegments = pathSegmentsPrefixes.map((pathSegment, i) => {
       if (i < lastSegment) {
-        return <span className="link" data-filepath={pathSegment.prefix}>{pathSegment.segment}</span>;
+        return <a className="link" href={"#"+pathSegment.prefix}>{pathSegment.segment}</a>;
       } else {
         return <span>{pathSegment.segment}</span>;
       }
@@ -86,7 +87,9 @@ function navView(pathSegments) {
     <div className="filetree-nav row">
       { breadcrumbSpans &&
         <div className="breadcrumbs">
-          <i className="link fa fa-home" aria-hidden="true"></i>
+          <a href="#/" className="home-link">
+            <i className="link fa fa-home" aria-hidden="true"></i>
+          </a>
           {breadcrumbSpans}
         </div>
       }
@@ -95,32 +98,39 @@ function navView(pathSegments) {
 }
 
 // TODO: rename this so it doesnt use names of git internals?
-function treeObjectView(state, treeEntries) {
-  const pathIsRoot = state.pathSegments.length === 0;
+function treeObjectView(path, treeEntries) {
   let subtreeList = [];
   for (const [name, props] of Object.entries(treeEntries)) {
     subtreeList.push({'name': name, 'type': props.type});
   }
   const filesList = subtreeList.map(f => {
     const iconClass = f.type === 'file' ? 'fa-file-text-o' : 'fa-folder';
+    const pathPrefix = path === '/' ? '#/' : '#' + path + '/';
+    const fLink = pathPrefix + f.name;
     return (
       <tr className="navigation">
         <td className="icon"><i className={'fa '+iconClass} aria-hidden="true"></i></td>
-        <td><span className="nav-link" data-filename={f.name}>{f.name}</span></td>
+        <td><a href={fLink}>{f.name}</a></td>
       </tr>
     );
   });
 
+  let doubleDotRow = null;
+  if (path !== '/') {
+    const parentPath = path.substr(0, path.lastIndexOf('/'));
+    doubleDotRow = (
+      <tbody>
+        <tr className="navigation">
+          <td className="icon"></td>
+          <td><a href={'#'+parentPath}>..</a></td>
+        </tr>
+      </tbody>
+    );
+  }
+
   return (
     <table className="tree-view row u-full-width">
-      <tbody>
-        { !pathIsRoot &&
-          <tr className="navigation">
-            <td className="icon"></td>
-            <td><span className="nav-link">..</span></td>
-          </tr>
-        }
-      </tbody>
+      { doubleDotRow }
       <tbody>
         {filesList}
       </tbody>

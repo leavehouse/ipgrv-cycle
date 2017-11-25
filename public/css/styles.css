@@ -22,19 +22,6 @@ tr.navigation > td.icon {
   width: 20px;
 }
 
-span.nav-link {
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 .breadcrumbs {
-    margin-bottom: 10px;
-}
-
-.breadcrumbs > .link {
-  cursor: pointer;
-}
-
-.breadcrumbs > span.link:hover {
-  text-decoration: underline;
+  margin-bottom: 10px;
 }
